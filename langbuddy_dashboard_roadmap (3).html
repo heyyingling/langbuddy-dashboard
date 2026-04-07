@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LangBuddy — Pilot Dashboard & Product Roadmap</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f7f4; color: #1a1a18; line-height: 1.5; }
+.page { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+h1 { font-size: 22px; font-weight: 500; color: #1a1a18; margin-bottom: 4px; }
+.page-subtitle { font-size: 13px; color: #888780; margin-bottom: 2rem; }
+.section-label { font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: #888780; margin: 1.5rem 0 0.6rem; }
+.metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-bottom: 0.5rem; }
+.metric { background: #f1efe8; border-radius: 8px; padding: 0.9rem 1rem; }
+.metric .lbl { font-size: 12px; color: #5f5e5a; margin-bottom: 4px; }
+.metric .val { font-size: 22px; font-weight: 500; color: #1a1a18; line-height: 1.1; }
+.metric .sub { font-size: 11px; color: #888780; margin-top: 2px; }
+.chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 0.5rem; }
+.chart-row.thirds { grid-template-columns: 1fr 1fr 1fr; }
+.chart-box { background: #fff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px; padding: 1rem 1.25rem; }
+.chart-title { font-size: 13px; font-weight: 500; color: #1a1a18; margin-bottom: 4px; }
+.chart-subtitle { font-size: 11px; color: #888780; margin-bottom: 10px; }
+.chart-wrap { position: relative; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; color: #5f5e5a; margin-top: 8px; }
+.legend span { display: flex; align-items: center; gap: 4px; }
+.legend .dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+.flag-bar { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
+.flag-row { display: flex; align-items: center; gap: 8px; }
+.flag-label { width: 100px; flex-shrink: 0; font-size: 11px; color: #5f5e5a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.flag-track { flex: 1; background: rgba(0,0,0,0.08); border-radius: 2px; height: 8px; overflow: hidden; }
+.flag-fill { height: 100%; border-radius: 2px; }
+.flag-val { min-width: 30px; text-align: right; font-size: 11px; color: #5f5e5a; }
+.funnel { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.funnel-row { display: flex; align-items: center; gap: 12px; }
+.funnel-bar-wrap { flex: 1; background: rgba(0,0,0,0.08); border-radius: 3px; height: 32px; overflow: hidden; }
+.funnel-fill { height: 100%; border-radius: 3px; display: flex; align-items: center; padding-left: 10px; }
+.funnel-fill span { font-size: 12px; font-weight: 500; color: #fff; white-space: nowrap; }
+.funnel-meta { width: 130px; flex-shrink: 0; text-align: right; }
+.funnel-meta .pct { font-size: 15px; font-weight: 500; color: #1a1a18; }
+.funnel-meta .n { font-size: 11px; color: #888780; }
+.open-q { margin-top: 10px; padding: 8px 10px; border-left: 2px solid #EF9F27; background: #f1efe8; border-radius: 0 8px 8px 0; font-size: 11px; color: #5f5e5a; }
+.open-q strong { color: #1a1a18; font-weight: 500; }
+.finding-q { margin-top: 10px; padding: 8px 10px; border-left: 2px solid #D85A30; background: #f1efe8; border-radius: 0 8px 8px 0; font-size: 11px; color: #5f5e5a; }
+.finding-q strong { color: #1a1a18; font-weight: 500; }
+.funnel-note { font-size: 11px; color: #888780; margin-top: 10px; border-top: 0.5px solid rgba(0,0,0,0.1); padding-top: 8px; }
+.ambition-banner { background: #f1efe8; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px; padding: 1.25rem; margin-bottom: 14px; }
+.ambition-banner .headline { font-size: 16px; font-weight: 500; color: #1a1a18; margin-bottom: 6px; line-height: 1.4; }
+.ambition-banner .tagline { font-size: 12px; color: #5f5e5a; margin-bottom: 1rem; }
+.ambition-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.ambition-card { border-radius: 8px; padding: 0.75rem 0.875rem; }
+.ambition-card .role { font-size: 11px; font-weight: 500; margin-bottom: 6px; }
+.ambition-card .body { font-size: 12px; line-height: 1.5; }
+.card-student { background: #E1F5EE; } .card-student .role { color: #085041; } .card-student .body { color: #0F6E56; }
+.card-lb { background: #E6F1FB; } .card-lb .role { color: #042C53; } .card-lb .body { color: #185FA5; }
+.card-teacher { background: #FAEEDA; } .card-teacher .role { color: #412402; } .card-teacher .body { color: #854F0B; }
+.ambition-scale { margin-top: 10px; padding: 8px 10px; background: #E1F5EE; border-radius: 8px; font-size: 11px; color: #0F6E56; font-weight: 500; }
+.proof-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.proof-box { background: #fff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px; padding: 1rem 1.25rem; }
+.proof-badge { font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: 8px; display: inline-block; margin-bottom: 10px; }
+.badge-proven { background: #E1F5EE; color: #085041; }
+.badge-needed { background: #FAEEDA; color: #633806; }
+.proof-item { display: flex; gap: 8px; margin-bottom: 7px; font-size: 12px; color: #5f5e5a; line-height: 1.4; }
+.proof-item .pdot { width: 6px; height: 6px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.dot-proven { background: #1D9E75; } .dot-needed { background: #EF9F27; }
+.proof-item .stat { font-weight: 500; color: #1a1a18; }
+.anchor-block { margin-bottom: 1.25rem; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.anchor-card { border-radius: 12px; padding: 1rem 1.25rem; border: 0.5px solid rgba(0,0,0,0.12); background: #fff; }
+.anchor-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: #888780; margin-bottom: 6px; }
+.anchor-title { font-size: 13px; font-weight: 500; color: #1a1a18; margin-bottom: 6px; line-height: 1.4; }
+.anchor-body { font-size: 12px; color: #5f5e5a; line-height: 1.6; }
+.ns-baseline { display: flex; align-items: center; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 0.5px solid rgba(0,0,0,0.1); }
+.ns-baseline-val { font-size: 18px; font-weight: 500; color: #1D9E75; }
+.ns-baseline-desc { font-size: 11px; color: #888780; line-height: 1.4; }
+.ns-note { font-size: 11px; color: #888780; margin-top: 6px; font-style: italic; }
+.scale-plan { background: #fff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 14px; }
+.scale-plan-title { font-size: 13px; font-weight: 500; color: #1a1a18; margin-bottom: 10px; }
+.wave-row { display: flex; gap: 12px; margin-bottom: 8px; align-items: flex-start; }
+.wave-badge { font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 8px; white-space: nowrap; flex-shrink: 0; min-width: 90px; text-align: center; }
+.wave-1 { background: #E6F1FB; color: #042C53; } .wave-2 { background: #E1F5EE; color: #085041; }
+.wave-3 { background: #EEEDFE; color: #26215C; } .wave-pri { background: #FAEEDA; color: #412402; }
+.wave-content .wave-title { font-size: 12px; font-weight: 500; color: #1a1a18; margin-bottom: 2px; }
+.wave-content .wave-desc { font-size: 11px; color: #5f5e5a; line-height: 1.4; }
+.wave-content .wave-criteria { font-size: 11px; color: #888780; margin-top: 3px; font-style: italic; }
+.scale-divider { border: none; border-top: 0.5px solid rgba(0,0,0,0.1); margin: 10px 0; }
+.divider { border: none; border-top: 0.5px solid rgba(0,0,0,0.1); margin: 1.5rem 0; }
+.gap-banner { background: #f1efe8; border-left: 3px solid #D85A30; border-radius: 0 12px 12px 0; padding: 0.875rem 1rem; margin-bottom: 1.25rem; }
+.gap-banner .g-title { font-size: 13px; font-weight: 500; color: #1a1a18; margin-bottom: 4px; }
+.gap-banner .g-body { font-size: 12px; color: #5f5e5a; line-height: 1.5; }
+.gap-banner .g-body strong { color: #1a1a18; font-weight: 500; }
+.legend-row { display: flex; gap: 16px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #5f5e5a; }
+.legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+.horizon { margin-bottom: 1.5rem; }
+.horizon-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+.horizon-badge { font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 8px; flex-shrink: 0; margin-top: 2px; white-space: nowrap; }
+.badge-t2 { background: #E1F5EE; color: #085041; } .badge-hol { background: #f1efe8; color: #2C2C2A; }
+.badge-t3 { background: #E6F1FB; color: #042C53; } .badge-t4 { background: #EEEDFE; color: #26215C; }
+.horizon-title { font-size: 15px; font-weight: 500; color: #1a1a18; }
+.horizon-focus { font-size: 12px; color: #888780; margin-top: 2px; line-height: 1.4; }
+.feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+.feature-card { background: #fff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px; padding: 0.875rem 1rem; display: flex; flex-direction: column; }
+.f-title { font-size: 13px; font-weight: 500; color: #1a1a18; margin-bottom: 5px; }
+.f-desc { font-size: 12px; color: #5f5e5a; line-height: 1.5; margin-bottom: 8px; flex: 1; }
+.rationale { padding: 6px 8px; border-radius: 8px; }
+.rat-t2 { background: #E1F5EE; } .rat-hol { background: #f1efe8; } .rat-t3 { background: #E6F1FB; } .rat-t4 { background: #EEEDFE; }
+.r-inner { display: flex; gap: 6px; align-items: flex-start; }
+.r-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+.dot-t2 { background: #1D9E75; } .dot-hol { background: #888780; } .dot-t3 { background: #378ADD; } .dot-t4 { background: #7F77DD; }
+.r-text { font-size: 11px; line-height: 1.4; }
+.rt-t2 { color: #085041; } .rt-hol { color: #2C2C2A; } .rt-t3 { color: #042C53; } .rt-t4 { color: #26215C; }
+.for-whom { display: flex; gap: 5px; margin-bottom: 6px; flex-wrap: wrap; }
+.tag { font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 500; }
+.tag-student { background: #E1F5EE; color: #085041; } .tag-teacher { background: #FAEEDA; color: #633806; }
+.tag-system { background: #EEEDFE; color: #3C3489; } .tag-research { background: #FAECE7; color: #4A1B0C; }
+.tag-content { background: #E6F1FB; color: #042C53; } .tag-scale { background: #f1efe8; color: #2C2C2A; }
+.tag-primary { background: #EEEDFE; color: #3C3489; }
+.layer-divider { display: flex; align-items: center; gap: 10px; margin: 12px 0 10px; }
+.layer-divider span { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: #888780; white-space: nowrap; }
+.layer-divider::before, .layer-divider::after { content: ''; flex: 1; height: 0.5px; background: rgba(0,0,0,0.1); }
+@media (max-width: 700px) {
+  .metric-grid { grid-template-columns: 1fr 1fr; }
+  .chart-row, .chart-row.thirds, .proof-grid, .anchor-block, .ambition-cards, .feature-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+<h1>LangBuddy — Pilot Dashboard & Product Roadmap</h1>
+<p class="page-subtitle">16-school secondary pilot, Feb–Mar 2026 &nbsp;·&nbsp; Prepared Apr 2026</p>
+
+<div class="section-label">The ambition</div>
+<div class="ambition-banner">
+  <div class="headline">LangBuddy transforms how MTL speaking practice happens — not just a better app, but a structural shift in how curriculum time is used.</div>
+  <div class="tagline">Vision: trailblazing how tech empowers students to learn with joy, agency and purpose — a model that, once proven in MTL, can reshape how other subjects are taught.</div>
+  <div class="ambition-cards">
+    <div class="ambition-card card-student"><div class="role">Student</div><div class="body">Learns MTL in school but speaks English at home. Needs more chances to practise — with no judgement, low-stakes, no consequence for getting it wrong.</div></div>
+    <div class="ambition-card card-lb"><div class="role">LangBuddy</div><div class="body">Opens it, picks a situation, and speaks. Over time, fluency improves and confidence grows. Learning happens with joy, agency and purpose — not obligation.</div></div>
+    <div class="ambition-card card-teacher"><div class="role">Teacher</div><div class="body">30–40 students, 50 minutes class time. LangBuddy takes on the repetitive practice load — she gets time back to do what only a human teacher can do.</div></div>
+  </div>
+  <div class="ambition-scale">Scale ambition: 420K students. Every student with a safer space to practise. Every teacher with more room to teach.</div>
+</div>
+
+
+<div class="section-label">What the pilot proved — and what we still need to show</div>
+<div class="proof-grid">
+  <div class="proof-box">
+    <span class="proof-badge badge-proven">Proven by pilot data</span>
+    <div class="proof-item"><span class="pdot dot-proven"></span><span>Students will use it when prompted. <span class="stat">1,152 students across 16 schools</span> activated during the 8-week pilot.</span></div>
+    <div class="proof-item"><span class="pdot dot-proven"></span><span>Speaking practice is happening. <span class="stat">17,056 minutes</span> of spoken practice generated outside the classroom.</span></div>
+    <div class="proof-item"><span class="pdot dot-proven"></span><span>Most students spoke at least once. <span class="stat">92% activation rate</span> with low technical failure signals.</span></div>
+    <div class="proof-item"><span class="pdot dot-proven"></span><span>Students show goal-setting behaviour. <span class="stat">923 of 1,152</span> selected at least one learning goal.</span></div>
+    <div class="proof-item"><span class="pdot dot-proven"></span><span>Some schools show very strong retention. <span class="stat">3 schools above 85%</span> teacher-prompted return rate.</span></div>
+    <div class="proof-item"><span class="pdot dot-proven"></span><span>Organic after-school usage exists. <span class="stat">12.1% used LangBuddy after school at least once</span> with zero self-direction features built.</span></div>
+  </div>
+  <div class="proof-box">
+    <span class="proof-badge badge-needed">Still needs to be shown</span>
+    <div class="proof-item"><span class="pdot dot-needed"></span><span>Does practice improve speaking outcomes? No pre/post assessment data yet — usage ≠ learning. Being addressed by the efficacy research already in motion.</span></div>
+    <div class="proof-item"><span class="pdot dot-needed"></span><span>Does LangBuddy free up teacher time? No data yet on whether teachers restructured their lessons.</span></div>
+    <div class="proof-item"><span class="pdot dot-needed"></span><span>Can the high-retention school model be replicated? Top school deployment approach needs documentation before 132-school rollout.</span></div>
+    <div class="proof-item"><span class="pdot dot-needed"></span><span>Does the existing app work for upper primary without adaptation? Small supervised in-classroom pilot with 3–5 schools in Term 4 — learning before committing to development.</span></div>
+    <div class="proof-item"><span class="pdot dot-needed"></span><span>After-school habit is not yet formed. <span class="stat">12.1% used LangBuddy after school at least once</span> — sustained voluntary return is the key challenge ahead.</span></div>
+    <div class="proof-item"><span class="pdot dot-needed"></span><span>Why do students not self-direct more? Requires qual research on motivation, product pull, and habit triggers.</span></div>
+  </div>
+</div>
+
+
+<div class="section-label">Pilot headline numbers — 16 schools, Feb–Mar 2026</div>
+<div class="metric-grid">
+  <div class="metric"><div class="lbl">Total sessions</div><div class="val">5,002</div><div class="sub">Feb – Mar 2026</div></div>
+  <div class="metric"><div class="lbl">Active students</div><div class="val">1,152</div><div class="sub">16 schools</div></div>
+  <div class="metric"><div class="lbl">Spoken practice time</div><div class="val">17,056</div><div class="sub">minutes generated</div></div>
+  <div class="metric"><div class="lbl">Sustained conversations</div><div class="val">65%</div><div class="sub">746 students had a 21+ turn session</div></div>
+</div>
+<div class="metric-grid" style="margin-top:10px;">
+  <div class="metric"><div class="lbl">Avg sessions / student</div><div class="val">4.3</div><div class="sub">median 3</div></div>
+  <div class="metric"><div class="lbl">Session bounce rate</div><div class="val">25.6%</div><div class="sub">1,282 sessions, 1 turn only</div></div>
+  <div class="metric"><div class="lbl">After-school usage</div><div class="val">12.1%</div><div class="sub">139 of 1,152 students</div></div>
+  <div class="metric"><div class="lbl">Power users (6+ sessions)</div><div class="val">26%</div><div class="sub">303 of 1,152 students</div></div>
+</div>
+
+
+<div class="section-label">Engagement funnel</div>
+<div class="chart-box" style="margin-bottom:14px;">
+  <div class="chart-title">From enrolled to after-school usage</div>
+  <div class="funnel" id="funnelContainer"></div>
+  <div class="funnel-note">† Teacher-prompted (school hours). ‡ After-school = weekends or weekdays after 3pm.</div>
+</div>
+
+
+<div class="section-label">What we learned — after-school usage</div>
+<div class="chart-row">
+  <div class="chart-box">
+    <div class="chart-title">Sessions by time of day</div>
+    <div class="chart-subtitle">91.3% of sessions happen during school hours</div>
+    <div class="chart-wrap" style="height:190px;"><canvas id="hourChart"></canvas></div>
+    <div class="open-q"><strong>Open question:</strong> Evening users (7–10pm, 223 sessions) are the strongest self-direction signal. Who are they and what makes them different?</div>
+  </div>
+  <div class="chart-box">
+    <div class="chart-title">After-school usage rate by language</div>
+    <div class="chart-subtitle">% of students who used LangBuddy outside school hours</div>
+    <div class="chart-wrap" style="height:190px;"><canvas id="sdLangChart"></canvas></div>
+    <div class="open-q"><strong>Open question:</strong> Tamil students self-direct at 28% vs 11% Chinese and 7% Malay. School effect or programme design?</div>
+  </div>
+</div>
+
+<div class="chart-box" style="margin-bottom:14px;">
+  <div class="chart-title">After-school usage rate by school</div>
+  <div class="chart-subtitle">% of school's students who used LangBuddy outside school hours</div>
+  <div class="chart-wrap" style="height:280px;"><canvas id="sdSchoolChart"></canvas></div>
+  <div class="open-q"><strong>Open question:</strong> Plmgss leads on both retention (87%) and self-direction (38.6%). Priority school for qual research and playbook documentation.</div>
+</div>
+
+
+<div class="section-label">What we learned — school retention</div>
+<div class="chart-box" style="margin-bottom:14px;">
+  <div class="chart-title">Return rate per school (% of students who came back across multiple lessons)</div>
+  <div class="chart-subtitle">Pilot average: 45% — reflects teacher deployment, not student agency</div>
+  <div class="chart-wrap" style="height:320px;"><canvas id="retentionChart"></canvas></div>
+  <div class="open-q"><strong>Open question:</strong> What are Plmgss, Northbrooks and Punggolss doing differently? Must be documented before the 132-school rollout in Term 3.</div>
+</div>
+
+
+<div class="section-label">What we learned — weekly volume</div>
+<div class="chart-box" style="margin-bottom:14px;">
+  <div class="chart-title">Weekly volume — all sessions vs after-school</div>
+  <div class="chart-wrap" style="height:170px;"><canvas id="weekChart"></canvas></div>
+  <div class="legend">
+    <span><span class="dot" style="background:#B5D4F4;"></span>All sessions</span>
+    <span><span class="dot" style="background:#D85A30;"></span>After-school</span>
+  </div>
+</div>
+
+
+<div class="chart-box" style="margin-bottom:14px;">
+  <div class="chart-title">Session turn distribution</div>
+  <div class="chart-subtitle">32% of all sessions had 21+ turns — median 36 turns. When students engage, they go deep.</div>
+  <div class="chart-wrap" style="height:200px;"><canvas id="turnChart"></canvas></div>
+  <div class="open-q"><strong>Finding:</strong> The distribution is bimodal — students either bounce at turn 1 (25.6%) or have a sustained conversation (32% with 21+ turns). The challenge is getting more students past the initial threshold, not making deep sessions longer. Fun Topics drives the deepest sessions — 643 of 1,590 high-turn sessions came from the Fun Topics programme (student-chosen, not curriculum-assigned). 🐾 关爱动物 is the single most engaging topic.</div>
+</div>
+
+
+<div class="section-label">Problem statement & north star</div>
+<div class="anchor-block">
+  <div class="anchor-card">
+    <div class="anchor-label">Problem statement</div>
+    <div class="anchor-title">MTL students don't get enough speaking practice</div>
+    <div class="anchor-body">With 30–40 students and 50 minutes, teachers can only give each student a fraction of the practice time needed to build fluency. And when students do practise in class, it's in front of peers — high-stakes, anxiety-inducing, and not conducive to risk-taking. LangBuddy gives every student unlimited low-stakes speaking practice, initiated by teachers and sustained by students — making it possible to practise more often, more freely, and more independently than classroom time alone can ever allow.</div>
+  </div>
+  <div class="anchor-card">
+    <div class="anchor-label">North star metric</div>
+    <div class="anchor-title">Average sessions completed per active student per week</div>
+    <div class="anchor-body">Measures whether students are practising frequently enough to build fluency — not just whether they activated once.</div>
+    <div class="ns-baseline">
+      <div class="ns-baseline-val">0.5</div>
+      <div class="ns-baseline-desc">sessions/week pilot baseline. Target: 3 sessions/week, 10 minutes each — 30 minutes of low-stakes independent practice that classroom time alone can never provide.</div>
+    </div>
+    <div class="ns-baseline" style="margin-top:6px;">
+      <div class="ns-baseline-val" style="color:#378ADD;">8.2 min</div>
+      <div class="ns-baseline-desc">avg session duration for engaged sessions (21+ turns). Secondary metric target: 10 minutes per session.</div>
+    </div>
+    <div class="ns-note">Behaviour metric for now. To be complemented by speaking improvement outcomes once efficacy research produces results.</div>
+  </div>
+</div>
+
+
+<div class="section-label">Scale plan — 2026</div>
+<div class="scale-plan">
+  <div class="scale-plan-title">Secondary: progressive rollout to 132 schools, Term 3 (Jul–Sep 2026)</div>
+  <div class="wave-row"><span class="wave-badge wave-1">Wave 1 — Jul</span><div class="wave-content"><div class="wave-title">16 → ~40 schools (+24 new)</div><div class="wave-desc">Grow from the 16 pilot schools to ~40. The 3 high-retention pilot schools (Plmgss, Northbrooks, Punggolss) lead peer onboarding for the new cohort. New schools selected for teacher readiness and MTL programme strength.</div><div class="wave-criteria">Entry criteria: teacher champion identified, school leadership briefed, deployment model aligned to playbook.</div></div></div>
+  <div class="wave-row"><span class="wave-badge wave-2">Wave 2 — Sep</span><div class="wave-content"><div class="wave-title">~40 → ~80 schools (+40 new)</div><div class="wave-desc">Scale to ~80 schools using Wave 1 learnings. Teacher dashboard and safety monitoring must be fully stable before this wave. Onboarding refined based on Wave 1 friction points.</div><div class="wave-criteria">Gated on: Wave 1 stable session frequency and retention, no critical safety or content issues flagged.</div></div></div>
+  <div class="wave-row"><span class="wave-badge wave-3">Wave 3 — Oct</span><div class="wave-content"><div class="wave-title">~80 → 132 schools (+52 new)</div><div class="wave-desc">Full secondary coverage by mid-Term 4. Content pipeline must be running at scale to sustain demand across all 132 schools. Note: Wave 3 coincides with the upper primary pilot launch — resourcing must be managed carefully across both tracks.</div><div class="wave-criteria">Gated on: Wave 2 stable, content pipeline live, AI quality gate operational.</div></div></div>
+  <div class="scale-divider"></div>
+  <div class="scale-plan-title" style="margin-top:8px;">Upper primary: exploratory pilot, Term 4 (Sep–Nov 2026)</div>
+  <div class="wave-row"><span class="wave-badge wave-pri">Term 4 — Sep</span><div class="wave-content"><div class="wave-title">3–5 schools — supervised in-classroom pilot</div><div class="wave-desc">A small, tightly supervised in-classroom pilot using the existing app. The research question is "what would we need to adapt?" — not "does it work at scale?". Teacher-supervised, in-class only, focused on learning before committing to product adaptation investment.</div><div class="wave-criteria">Entry criteria: school and teacher champions identified, research questions defined, clear expectation-setting with schools that this is exploratory on the existing secondary product.</div></div></div>
+  <div class="open-q" style="margin-top:12px;"><strong>Key risk:</strong> The high-retention playbook and teacher dashboard must be ready before Wave 1. Wave 3 (October) coincides with the upper primary pilot launch — onboarding 52 new secondary schools simultaneously with a new primary pilot is a significant resourcing risk that needs active management. Upper primary must have its own dedicated scoping track and team in Term 3.</div>
+</div>
+
+
+
+<div class="section-label">The roadmap — school calendar 2026</div>
+<div class="chart-box" style="margin-bottom:14px;">
+  <div class="chart-title">What we're building and when</div>
+  <div class="chart-subtitle">Each term has one strategic intent. Detail is in the appendix.</div>
+  <div style="display:flex;flex-direction:column;gap:0;margin-top:12px;">
+
+    <div style="display:grid;grid-template-columns:140px 1fr;border:0.5px solid rgba(0,0,0,0.1);border-radius:8px 8px 0 0;overflow:hidden;">
+      <div style="background:#E1F5EE;padding:14px 12px;display:flex;flex-direction:column;justify-content:center;">
+        <div style="font-size:10px;font-weight:500;color:#085041;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Term 2</div>
+        <div style="font-size:12px;font-weight:500;color:#085041;">Apr – May</div>
+        <div style="font-size:11px;color:#0F6E56;margin-top:2px;">8 weeks</div>
+      </div>
+      <div style="padding:14px 16px;background:#fff;">
+        <div style="font-size:13px;font-weight:500;color:#1D9E75;margin-bottom:4px;">Lay the foundation for scale</div><div style="font-size:11px;color:#085041;margin-bottom:6px;font-style:italic;">By end of May, we are actively building the foundations that make 132-school scale possible.</div>
+        <div style="font-size:12px;color:#5f5e5a;line-height:1.7;">
+  <div style="margin-bottom:5px;"><span style="font-size:10px;font-weight:500;background:#E1F5EE;color:#085041;padding:1px 6px;border-radius:4px;margin-right:6px;">Product</span>Fix 25.6% session bounce · Smarter session opening · Pre/post speaking self-assessment</div>
+  <div style="margin-bottom:5px;"><span style="font-size:10px;font-weight:500;background:#E6F1FB;color:#042C53;padding:1px 6px;border-radius:4px;margin-right:6px;">Infrastructure</span>Curriculum knowledge base (CL, ML, TL) · AI quality gate · Safety monitoring</div>
+  <div style="margin-bottom:5px;"><span style="font-size:10px;font-weight:500;background:#FAECE7;color:#4A1B0C;padding:1px 6px;border-radius:4px;margin-right:6px;">Research</span>Efficacy research instrumentation · Qual study: why students don't practise after school</div>
+  <div><span style="font-size:10px;font-weight:500;background:#F1EFE8;color:#2C2C2A;padding:1px 6px;border-radius:4px;margin-right:6px;">Operations</span>High-retention school playbook ready for Wave 1</div>
+</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:140px 1fr;border:0.5px solid rgba(0,0,0,0.1);border-top:none;overflow:hidden;">
+      <div style="background:#f1efe8;padding:14px 12px;display:flex;flex-direction:column;justify-content:center;">
+        <div style="font-size:10px;font-weight:500;color:#2C2C2A;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Holidays</div>
+        <div style="font-size:12px;font-weight:500;color:#2C2C2A;">Jun</div>
+        <div style="font-size:11px;color:#5f5e5a;margin-top:2px;">4 weeks</div>
+      </div>
+      <div style="padding:14px 16px;background:#fff;">
+        <div style="font-size:13px;font-weight:500;color:#2C2C2A;margin-bottom:4px;">Prepare the ground</div><div style="font-size:11px;color:#5f5e5a;margin-bottom:6px;font-style:italic;">By 2nd week of July, 40 schools are briefed and teachers are ready for Term 3.</div>
+        <div style="font-size:12px;color:#5f5e5a;line-height:1.7;">
+  <div style="margin-bottom:5px;"><span style="font-size:10px;font-weight:500;background:#F1EFE8;color:#2C2C2A;padding:1px 6px;border-radius:4px;margin-right:6px;">Operations</span>Onboard Wave 1 (~40 schools) — teacher engagement window is last week of June only (schools in protected holiday mode until then)</div>
+  <div style="margin-bottom:5px;"><span style="font-size:10px;font-weight:500;background:#E6F1FB;color:#042C53;padding:1px 6px;border-radius:4px;margin-right:6px;">Infrastructure</span>Content generation pipeline launches · First programmatic content across all 3 languages</div>
+  <div><span style="font-size:10px;font-weight:500;background:#EEEDFE;color:#26215C;padding:1px 6px;border-radius:4px;margin-right:6px;">Primary</span>Begin upper primary scoping — curriculum review, safety considerations, school identification</div>
+</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:140px 1fr;border:0.5px solid rgba(0,0,0,0.1);border-top:none;overflow:hidden;">
+      <div style="background:#E6F1FB;padding:14px 12px;display:flex;flex-direction:column;justify-content:center;">
+        <div style="font-size:10px;font-weight:500;color:#042C53;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Term 3</div>
+        <div style="font-size:12px;font-weight:500;color:#042C53;">Jul – Sep</div>
+        <div style="font-size:11px;color:#185FA5;margin-top:2px;">11 weeks</div>
+      </div>
+      <div style="padding:14px 16px;background:#fff;">
+        <div style="font-size:13px;font-weight:500;color:#185FA5;margin-bottom:4px;">Bring LangBuddy to every secondary school in Singapore</div><div style="font-size:11px;color:#185FA5;margin-bottom:6px;font-style:italic;">By end of October, LangBuddy will have reached all 132 secondary schools in three progressive waves.</div>
+        <div style="font-size:12px;color:#5f5e5a;line-height:1.7;">
+  <div style="margin-bottom:5px;"><span style="font-size:10px;font-weight:500;background:#F1EFE8;color:#2C2C2A;padding:1px 6px;border-radius:4px;margin-right:6px;">Scale</span>Wave 1 (Jul): 16 → 40 schools · Wave 2 (Sep): 40 → 80 schools · Wave 3 (Oct): 80 → 132 schools — each gated on stability of the previous wave</div>
+  <div style="margin-bottom:5px;"><span style="font-size:10px;font-weight:500;background:#E1F5EE;color:#085041;padding:1px 6px;border-radius:4px;margin-right:6px;">Product</span>First motivation features: "continue where you left off" · Goal-to-session loop · Teacher time reallocation tracker</div>
+  <div style="margin-bottom:5px;"><span style="font-size:10px;font-weight:500;background:#FAECE7;color:#4A1B0C;padding:1px 6px;border-radius:4px;margin-right:6px;">Research</span>Efficacy research pilot running live across the whole term · Speaking progress analytics tracked</div>
+  <div><span style="font-size:10px;font-weight:500;background:#EEEDFE;color:#26215C;padding:1px 6px;border-radius:4px;margin-right:6px;">Primary</span>Upper primary content adaptation · School selection finalised · Pilot ready to launch Term 4</div>
+</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:140px 1fr;border:0.5px solid rgba(0,0,0,0.1);border-top:none;border-radius:0 0 8px 8px;overflow:hidden;">
+      <div style="background:#EEEDFE;padding:14px 12px;display:flex;flex-direction:column;justify-content:center;">
+        <div style="font-size:10px;font-weight:500;color:#26215C;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Term 4</div>
+        <div style="font-size:12px;font-weight:500;color:#26215C;">Sep – Nov</div>
+        <div style="font-size:11px;color:#3C3489;margin-top:2px;">10 weeks</div>
+      </div>
+      <div style="padding:14px 16px;background:#fff;">
+        <div style="font-size:13px;font-weight:500;color:#3C3489;margin-bottom:4px;">Deepen secondary engagement and begin learning from upper primary</div><div style="font-size:11px;color:#3C3489;margin-bottom:6px;font-style:italic;">By end of November, habit-forming features are live for secondary students and we have real classroom data from a small supervised upper primary pilot on the existing app.</div>
+        <div style="font-size:12px;color:#5f5e5a;line-height:1.7;">
+  <div style="margin-bottom:5px;"><span style="font-size:10px;font-weight:500;background:#E1F5EE;color:#085041;padding:1px 6px;border-radius:4px;margin-right:6px;">Product</span>Habit mechanics: streak and progress visibility · Difficulty calibration · Adaptive content layer for secondary</div>
+  <div style="margin-bottom:5px;"><span style="font-size:10px;font-weight:500;background:#EEEDFE;color:#26215C;padding:1px 6px;border-radius:4px;margin-right:6px;">Primary</span>Supervised in-classroom pilot launches — 3–5 schools, existing app, research question: what needs adapting?</div>
+  <div style="margin-bottom:5px;"><span style="font-size:10px;font-weight:500;background:#FAECE7;color:#4A1B0C;padding:1px 6px;border-radius:4px;margin-right:6px;">Research</span>Post-assessment for Term 2 efficacy cohort · First speaking improvement signals published</div>
+  <div><span style="font-size:10px;font-weight:500;background:#F1EFE8;color:#2C2C2A;padding:1px 6px;border-radius:4px;margin-right:6px;">Scale</span>Wave 3 completes (Oct): all 132 secondary schools live · 132-school data feeds MOE-wide evidence base</div>
+</div>
+      </div>
+    </div>
+
+  </div>
+  <div style="margin-top:10px;font-size:11px;color:#888780;font-style:italic;">Detailed feature breakdown in appendix below.</div>
+</div>
+
+<div class="section-label">Team capacity & resource gaps</div>
+<div class="scale-plan" style="margin-bottom:14px;">
+  <div class="scale-plan-title">Current team</div>
+  <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px;">
+    <thead>
+      <tr style="background:#f1efe8;">
+        <th style="text-align:left;padding:7px 10px;font-weight:500;color:#1a1a18;border-bottom:0.5px solid rgba(0,0,0,0.1);">Role</th>
+        <th style="text-align:left;padding:7px 10px;font-weight:500;color:#1a1a18;border-bottom:0.5px solid rgba(0,0,0,0.1);">Capacity</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:0.5px solid rgba(0,0,0,0.06);">
+        <td style="padding:7px 10px;color:#1a1a18;">Product Manager</td>
+        <td style="padding:7px 10px;color:#5f5e5a;">Full-time</td>
+      </tr>
+      <tr style="background:#f8f7f4;border-bottom:0.5px solid rgba(0,0,0,0.06);">
+        <td style="padding:7px 10px;color:#1a1a18;">UX Designer</td>
+        <td style="padding:7px 10px;color:#5f5e5a;">Full-time</td>
+      </tr>
+      <tr style="border-bottom:0.5px solid rgba(0,0,0,0.06);">
+        <td style="padding:7px 10px;color:#1a1a18;">Software Engineer</td>
+        <td style="padding:7px 10px;color:#5f5e5a;">Full-time <span style="font-size:10px;font-weight:500;background:#E6F1FB;color:#042C53;padding:2px 7px;border-radius:10px;margin-left:6px;">ramping up</span></td>
+      </tr>
+      <tr style="background:#f8f7f4;border-bottom:0.5px solid rgba(0,0,0,0.06);">
+        <td style="padding:7px 10px;color:#1a1a18;">Software Engineer</td>
+        <td style="padding:7px 10px;color:#5f5e5a;">20% part-time</td>
+      </tr>
+      <tr style="border-bottom:0.5px solid rgba(0,0,0,0.06);">
+        <td style="padding:7px 10px;color:#1a1a18;">Software Engineer</td>
+        <td style="padding:7px 10px;"><span style="background:#FCEBEB;color:#A32D2D;font-size:10px;font-weight:500;padding:2px 7px;border-radius:10px;">Rolling off</span></td>
+      </tr>
+      <tr style="background:#f8f7f4;border-bottom:0.5px solid rgba(0,0,0,0.06);">
+        <td style="padding:7px 10px;color:#1a1a18;">Data Scientist</td>
+        <td style="padding:7px 10px;color:#5f5e5a;">50% part-time</td>
+      </tr>
+      <tr style="border-bottom:0.5px solid rgba(0,0,0,0.06);">
+        <td style="padding:7px 10px;color:#1a1a18;">Engineering Manager</td>
+        <td style="padding:7px 10px;color:#5f5e5a;">20% part-time</td>
+      </tr>
+      <tr style="background:#f8f7f4;border-bottom:0.5px solid rgba(0,0,0,0.06);">
+        <td style="padding:7px 10px;color:#1a1a18;">Curriculum Lead</td>
+        <td style="padding:7px 10px;color:#5f5e5a;">30% part-time</td>
+      </tr>
+      <tr>
+        <td style="padding:7px 10px;color:#1a1a18;">Curriculum Specialists (CL, ML, TL)</td>
+        <td style="padding:7px 10px;color:#5f5e5a;">Ad-hoc</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="scale-plan-title" style="margin-bottom:8px;">What we need to deliver the plan</div>
+  <div style="font-size:12px;color:#5f5e5a;line-height:1.6;margin-bottom:14px;">The team has the right skills and commitment. What we're asking for is capacity to match the ambition — three targeted hires that unlock the full roadmap. Without these, we will need to formally descope before Term 3 begins.</div>
+  <div class="wave-row" style="margin-bottom:10px;">
+    <span class="wave-badge" style="background:#E1F5EE;color:#085041;min-width:110px;">Ask 1</span>
+    <div class="wave-content">
+      <div class="wave-title">Project Manager</div>
+      <div class="wave-desc">Role already approved — prioritise filling before Term 3 begins. To own the 132-school rollout operations — teacher onboarding, wave coordination, and school communications. This frees the PM to focus on product strategy rather than logistics.</div>
+    </div>
+  </div>
+  <div class="wave-row" style="margin-bottom:10px;">
+    <span class="wave-badge" style="background:#E6F1FB;color:#042C53;min-width:110px;">Ask 2</span>
+    <div class="wave-content">
+      <div class="wave-title">Full-stack Engineer (full-time)</div>
+      <div class="wave-desc">Brings the team to 2 full-time SWEs instead of the current 1.2 FTE — with flexibility to own both student-facing features and infrastructure work. The student-facing features that move the north star (continue where you left off, goal-to-session loop, habit mechanics, adaptive content) are not deliverable without this. A full-stack hire is more versatile than a front-end specialist and strengthens the team for scale.</div>
+    </div>
+  </div>
+  <div class="wave-row" style="margin-bottom:10px;">
+    <span class="wave-badge" style="background:#EEEDFE;color:#26215C;min-width:110px;">Ask 3</span>
+    <div class="wave-content">
+      <div class="wave-title">UX Designer (shared resource with Student Space)</div>
+      <div class="wave-desc">A shared UX Designer across LangBuddy and Student Space covers both user research and design — from understanding why students do not practise after school, to designing the student experience and teacher dashboards. One person who can do the research and translate it into product design, shared across two programmes to reduce cost. Without this, student features are designed without insight and teacher tools remain deprioritised.</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-label">Appendix — detailed roadmap</div>
+<div class="gap-banner">
+  <div class="g-title">The strategic gap this roadmap is designed to close</div>
+  <div class="g-body">The pilot shows LangBuddy works as a <strong>teacher-initiated tool</strong>. Only <strong>12.1% of students used it outside school hours</strong> with zero self-direction features built. Every feature priority is evaluated against closing that gap — while building the content infrastructure and safety layer needed for 132-school scale, and preparing for the upper primary expansion.</div>
+</div>
+
+<div class="legend-row">
+  <div class="legend-item"><span class="legend-dot" style="background:#1D9E75;"></span>Student-facing</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#EF9F27;"></span>Teacher-facing</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#378ADD;"></span>Content infrastructure</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#7F77DD;"></span>Platform / system</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#D85A30;"></span>Research pilot</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#888780;"></span>Scale</div>
+</div>
+
+<div class="horizon">
+
+  <div class="horizon-header"><span class="horizon-badge badge-t2">Term 2 — Apr to May</span><div><div class="horizon-title">Lay the foundation for scale</div><div class="horizon-focus">8 critical weeks. Every student gets a better first session. The infrastructure for 132 schools is built. Research is instrumented. The playbook is ready. By end of May, we are ready to deploy.</div></div></div>
+  <div class="layer-divider"><span>Student & teacher</span></div>
+  <div class="feature-grid">
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-student">Student</span><span class="tag tag-research">Research pilot</span></div><div class="f-title">Pre/post speaking self-assessment</div><div class="f-desc">Baseline speaking confidence check at onboarding. Efficacy study primary outcome measure — cannot be retrofitted after cohort starts.</div><div class="rationale rat-t2"><div class="r-inner"><span class="r-dot dot-t2"></span><span class="r-text rt-t2">Must be live before the research cohort begins. Baseline data is lost if delayed.</span></div></div></div>
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-student">Student</span></div><div class="f-title">Smarter session opening</div><div class="f-desc">Personalise the coach's opening message based on student level, goals, and past sessions. Targets the 25.6% single-turn bounce rate directly.</div><div class="rationale rat-t2"><div class="r-inner"><span class="r-dot dot-t2"></span><span class="r-text rt-t2">1,282 sessions end at turn 1. Highest-leverage, lowest-cost fix before scale.</span></div></div></div>
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-teacher">Teacher</span></div><div class="f-title">Teacher dashboard — at-risk view</div><div class="f-desc">Shows which students haven't returned in 7+ days. Must be live before Wave 1 so teachers at 132 schools have visibility from day one.</div><div class="rationale rat-t2"><div class="r-inner"><span class="r-dot dot-t2"></span><span class="r-text rt-t2">Top schools hit 86–88% return with active teachers. This replicates it across all 132 schools.</span></div></div></div>
+  </div>
+  <div class="layer-divider"><span>Content infrastructure</span></div>
+  <div class="feature-grid">
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-content">Content infra</span></div><div class="f-title">Curriculum knowledge base</div><div class="f-desc">Ingest full MTL textbook and curriculum across Chinese, Malay, and Tamil. Foundation for all scalable content generation — must be built before Wave 3 content demand hits.</div><div class="rationale rat-t2"><div class="r-inner"><span class="r-dot dot-t2"></span><span class="r-text rt-t2">Manual content creation will not scale to 132 schools. Knowledge base unblocks everything downstream.</span></div></div></div>
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-content">Content infra</span><span class="tag tag-teacher">Teacher</span></div><div class="f-title">Safety monitoring and teacher oversight</div><div class="f-desc">Real-time flagging of content outside safe boundaries. Teacher-facing alerts and audit log. Non-negotiable before 132-school rollout.</div><div class="rationale rat-t2"><div class="r-inner"><span class="r-dot dot-t2"></span><span class="r-text rt-t2">Must be live before Wave 1 in July. Cannot roll out to 132 schools without a safety layer.</span></div></div></div>
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-content">Content infra</span></div><div class="f-title">AI evaluation and quality gate</div><div class="f-desc">Automated quality checks on AI-generated content — linguistic accuracy, age-appropriateness, curriculum alignment across all three languages.</div><div class="rationale rat-t2"><div class="r-inner"><span class="r-dot dot-t2"></span><span class="r-text rt-t2">Quality gate must exist before content generation scales. Cannot be added after the pipeline is running.</span></div></div></div>
+  </div>
+  <div class="layer-divider"><span>Research & operations</span></div>
+  <div class="feature-grid">
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-system">Platform</span><span class="tag tag-research">Research pilot</span></div><div class="f-title">Speaking progress analytics</div><div class="f-desc">Instrument longitudinal tracking of speaking patterns — turn length, topic complexity, vocabulary range. Core data feed for the efficacy study.</div><div class="rationale rat-t2"><div class="r-inner"><span class="r-dot dot-t2"></span><span class="r-text rt-t2">Usage ≠ learning. Research pilot needs this from day one to make any speaking improvement claim.</span></div></div></div>
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-system">Platform</span></div><div class="f-title">Qual research: why students don't self-direct</div><div class="f-desc">Interviews with students at low self-direction schools and the 28 who returned voluntarily. Transcript review of 1,282 bounce sessions.</div><div class="rationale rat-t2"><div class="r-inner"><span class="r-dot dot-t2"></span><span class="r-text rt-t2">Research before build. Can't design for motivation without understanding the 88% who felt no pull to return.</span></div></div></div>
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-scale">Scale</span></div><div class="f-title">High-retention school playbook</div><div class="f-desc">Document Plmgss, Northbrooks and Punggolss deployment models. Package as the onboarding guide for all 132 schools. Must be ready before Wave 1 in July.</div><div class="rationale rat-t2"><div class="r-inner"><span class="r-dot dot-t2"></span><span class="r-text rt-t2">17% vs 88% retention gap is not a product problem alone. The playbook prevents replicating low-engagement patterns at scale.</span></div></div></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<div class="horizon">
+  <div class="horizon-header"><span class="horizon-badge badge-hol">Term 2 Holidays — Jun</span><div><div class="horizon-title">Prepare the ground</div><div class="horizon-focus">Schools are in protected holiday mode. Teacher engagement begins only in the last week of June when teachers return to prepare for Term 3. That one week is the entire onboarding window — everything must be ready before it.</div></div></div>
+  <div class="feature-grid">
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-scale">Scale</span><span class="tag tag-teacher">Teacher</span></div><div class="f-title">Wave 1 school onboarding (~40 schools)</div><div class="f-desc">Onboard ~24 new schools alongside the 16 pilot schools using the high-retention playbook. Teacher training and deployment model alignment before Term 3. Pilot school teachers lead peer onboarding for new cohort.</div><div class="rationale rat-hol"><div class="r-inner"><span class="r-dot dot-hol"></span><span class="r-text rt-hol">Term 3 starts 29 Jun — no time to onboard during term. Holidays are the only window to do this properly.</span></div></div></div>
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-content">Content infra</span></div><div class="f-title">Scalable content generation — launch</div><div class="f-desc">Begin generating lesson and fun topics programmatically from the knowledge base. Pilot with Chinese first, then Malay and Tamil. Must be live before Wave 1 students arrive in Term 3.</div><div class="rationale rat-hol"><div class="r-inner"><span class="r-dot dot-hol"></span><span class="r-text rt-hol">132 schools will exhaust manually-created content quickly. Pipeline must be generating before scale begins.</span></div></div></div>
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-primary">Upper primary</span><span class="tag tag-system">Platform</span></div><div class="f-title">Upper primary scoping — begin</div><div class="f-desc">Start scoping the upper primary context: curriculum differences, age-appropriate content requirements, safety considerations, and student motivation profile. Scoping must be complete by end of Term 3 to enable Term 4 launch.</div><div class="rationale rat-hol"><div class="r-inner"><span class="r-dot dot-hol"></span><span class="r-text rt-hol">Term 4 launch requires scoping done in Term 3. Starting in Jun gives the full term to design properly without rushing.</span></div></div></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<div class="horizon">
+<hr class="divider">
+
+  <div class="horizon-header"><span class="horizon-badge badge-t3">Term 3 — Jul to Sep</span><div><div class="horizon-title">Bring LangBuddy to every secondary school in Singapore</div><div class="horizon-focus">Three rollout waves across Term 3. By end of September, all 132 secondary schools are live. First motivation features ship. Upper primary design is finalised. The north star starts moving.</div></div></div>
+  <div class="layer-divider"><span>Scale rollout</span></div>
+  <div class="feature-grid">
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-scale">Scale</span></div><div class="f-title">Wave 1 live — 16 → ~40 schools (Jul)</div><div class="f-desc">Pilot schools go live at Term 3 start alongside 24 new schools. Monitor session frequency, bounce, and self-direction rates weekly. High-retention playbook schools set the benchmark for Waves 2 and 3.</div><div class="rationale rat-t3"><div class="r-inner"><span class="r-dot dot-t3"></span><span class="r-text rt-t3">Wave 1 validates the playbook at scale. If session frequency or retention drops significantly, pause Wave 2 and investigate before proceeding.</span></div></div></div>
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-scale">Scale</span></div><div class="f-title">Wave 2 live — ~40 → ~80 schools (Sep)</div><div class="f-desc">Double coverage using Wave 1 learnings. Teacher content review workflow live to manage increased generation volume. Onboarding refined based on Wave 1 friction points.</div><div class="rationale rat-t3"><div class="r-inner"><span class="r-dot dot-t3"></span><span class="r-text rt-t3">Gated on Wave 1 showing stable session frequency and no critical safety or content issues.</span></div></div></div>
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-scale">Scale</span></div><div class="f-title">Wave 3 live — ~80 → 132 schools (Oct)</div><div class="f-desc">Full secondary coverage by mid-Term 4. Content pipeline and AI quality gate must be fully operational. Resourcing risk: Wave 3 coincides with upper primary pilot launch — requires active management across both tracks.</div><div class="rationale rat-t3"><div class="r-inner"><span class="r-dot dot-t3"></span><span class="r-text rt-t3">Gated on Wave 2 stable, content pipeline live, and AI quality gate operational at scale.</span></div></div></div>
+  </div>
+  <div class="layer-divider"><span>Student experience</span></div>
+  <div class="feature-grid">
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-student">Student</span></div><div class="f-title">"Continue where you left off"</div><div class="f-desc">Returning students see their last topic, current milestone, and next session suggestion. Makes re-entry purposeful — directly targets the 440 students stuck at milestone 1.</div><div class="rationale rat-t3"><div class="r-inner"><span class="r-dot dot-t3"></span><span class="r-text rt-t3">Informed by Term 2 qual research. No visible next step is a likely driver of drop-off.</span></div></div></div>
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-student">Student</span></div><div class="f-title">Goal-to-session loop</div><div class="f-desc">Goals set at onboarding actively shape session content and visible progress. 923 students set goals — connect them to what happens next, not just logged once at onboarding.</div><div class="rationale rat-t3"><div class="r-inner"><span class="r-dot dot-t3"></span><span class="r-text rt-t3">Goals are the clearest intrinsic motivation signal in the pilot data. Closing this loop turns stated intention into action.</span></div></div></div>
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-teacher">Teacher</span></div><div class="f-title">Class assignment and scheduling</div><div class="f-desc">Teachers assign specific topics with due dates. Bridges structured curriculum and student-initiated use — a starting point that can grow into independent habit over time.</div><div class="rationale rat-t3"><div class="r-inner"><span class="r-dot dot-t3"></span><span class="r-text rt-t3">Structured sessions retain better (3.7 vs 2.7 avg sessions/student). Curriculum integration is the bridge to student-initiated practice.</span></div></div></div>
+  </div>
+  <div class="layer-divider"><span>Upper primary pilot design</span></div>
+  <div class="feature-grid">
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-primary">Upper primary</span><span class="tag tag-content">Content infra</span></div><div class="f-title">Upper primary content adaptation</div><div class="f-desc">Adapt content and conversation design for upper primary — simpler vocabulary scaffolding, age-appropriate topics, adjusted safety thresholds. Knowledge base seeded with upper primary curriculum.</div><div class="rationale rat-t3"><div class="r-inner"><span class="r-dot dot-t3"></span><span class="r-text rt-t3">Upper primary content cannot be a reskin of secondary content. Requires dedicated design and curriculum alignment.</span></div></div></div>
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-primary">Upper primary</span><span class="tag tag-scale">Scale</span></div><div class="f-title">Upper primary pilot school selection</div><div class="f-desc">Select 3–5 primary schools for a supervised Term 4 in-classroom pilot using the existing app. Set clear expectations: this is exploratory and the research question is what needs adapting, not whether the product is production-ready for primary.</div><div class="rationale rat-t3"><div class="r-inner"><span class="r-dot dot-t3"></span><span class="r-text rt-t3">School selection and teacher briefing must be complete before Term 3 ends to enable a clean Term 4 launch.</span></div></div></div>
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-teacher">Teacher</span></div><div class="f-title">Teacher time reallocation tracker</div><div class="f-desc">Periodic prompt to teachers: how did you use class time this week? Instruments whether LangBuddy is freeing up curriculum time across both secondary and upper primary contexts.</div><div class="rationale rat-t3"><div class="r-inner"><span class="r-dot dot-t3"></span><span class="r-text rt-t3">"Teacher gets time back" is still unproven. Deploy across 132 secondary schools and the primary pilot simultaneously.</span></div></div></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<div class="horizon">
+  <div class="horizon-header"><span class="horizon-badge badge-t4">Term 4 — Sep to Nov</span><div><div class="horizon-title">Deepen secondary engagement and begin learning from upper primary</div><div class="horizon-focus">Habit mechanics and adaptive content deepen secondary engagement. A small supervised in-classroom pilot with 3–5 primary schools using the existing app — learning what needs to be adapted before committing to development. First efficacy research signals published.</div></div></div>
+  <div class="layer-divider"><span>Upper primary pilot launch</span></div>
+  <div class="feature-grid">
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-primary">Upper primary</span><span class="tag tag-scale">Scale</span></div><div class="f-title">Upper primary pilot — live (3–5 schools)</div><div class="f-desc">Launch a small supervised in-classroom pilot using the existing secondary app. Research question: what would we need to adapt for primary? Measure teacher feedback, student engagement, and content fit. In-class only, teacher-supervised. No after-school usage expectations.</div><div class="rationale rat-t4"><div class="r-inner"><span class="r-dot dot-t4"></span><span class="r-text rt-t4">Small and intentional. Goal is to learn what works in upper primary before any larger rollout — not to prove scale.</span></div></div></div>
+  </div>
+  <div class="layer-divider"><span>Student experience — secondary</span></div>
+  <div class="feature-grid">
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-student">Student</span></div><div class="f-title">Streak and progress visibility</div><div class="f-desc">Streak mechanic and milestone progress anchored to stated goals — purposeful, not gamified. Designed using Term 2 qual research on what actually motivates secondary MTL students to return.</div><div class="rationale rat-t4"><div class="r-inner"><span class="r-dot dot-t4"></span><span class="r-text rt-t4">Habit mechanics are the direct lever for moving avg sessions/week from 0.5 toward 3 — must reflect actual motivation drivers from qual research.</span></div></div></div>
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-student">Student</span></div><div class="f-title">Difficulty calibration</div><div class="f-desc">Auto-adjust session difficulty based on performance signals — response length, vocabulary range, turn count. Prevents frustration and boredom, which both suppress return.</div><div class="rationale rat-t4"><div class="r-inner"><span class="r-dot dot-t4"></span><span class="r-text rt-t4">Requires speaking progress data from Term 2 onwards. Cannot be built without that signal being stable.</span></div></div></div>
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-content">Content infra</span></div><div class="f-title">Adaptive content layer</div><div class="f-desc">Content adapts to each student's level, progression, and gaps — vocabulary complexity, sentence scaffolding, topic depth. Moves from uniform to personalised practice at scale.</div><div class="rationale rat-t4"><div class="r-inner"><span class="r-dot dot-t4"></span><span class="r-text rt-t4">Requires knowledge base (Term 2) + content pipeline (Jun) + progress data (Term 2 onwards). All three must be stable first.</span></div></div></div>
+  </div>
+  <div class="layer-divider"><span>Research</span></div>
+  <div class="feature-grid">
+    <div class="feature-card"><div class="for-whom"><span class="tag tag-research">Research pilot</span></div><div class="f-title">First efficacy research signals</div><div class="f-desc">Post-assessment for the Term 2 research cohort. Publish first findings on after-school usage improvement and early speaking confidence changes. Sets the evidence base for the 420K scale recommendation.</div><div class="rationale rat-t4"><div class="r-inner"><span class="r-dot dot-t4"></span><span class="r-text rt-t4">Behaviour metric is the north star for now. Term 4 is when the first outcome data becomes available to complement it.</span></div></div></div>
+  </div>
+</div>
+
+</div>
+
+
+
+<script>
+const gridColor = 'rgba(0,0,0,0.06)';
+const tickColor = 'rgba(0,0,0,0.4)';
+
+const funnelData = [
+  { label: 'Enrolled & active', n: 1152, pct: 100, color: '#378ADD' },
+  { label: 'Spoke at least once †', n: 1060, pct: 92, color: '#5DCAA5' },
+  { label: 'Had 6+ turn session †', n: 995, pct: 86, color: '#1D9E75' },
+  { label: 'Returned across lessons †', n: 515, pct: 45, color: '#0F6E56' },
+  { label: 'After-school usage ‡', n: 139, pct: 12, color: '#BA7517' },
+];
+const fc = document.getElementById('funnelContainer');
+funnelData.forEach((d,i) => {
+  const row = document.createElement('div'); row.className = 'funnel-row';
+  row.innerHTML = `<div class="funnel-bar-wrap"><div class="funnel-fill" style="width:${Math.max(d.pct,2)}%;background:${d.color};"><span>${d.label}</span></div></div><div class="funnel-meta"><div class="pct">${d.pct}%</div><div class="n">${d.n.toLocaleString()} students</div></div>`;
+  fc.appendChild(row);
+});
+
+new Chart(document.getElementById('hourChart'), {
+  type:'bar', data:{labels:['Morning 7–9am','Mid-morning 10–11am','Lunchtime 12–2pm','After school 3–6pm','Evening 7–10pm'],datasets:[{data:[1190,1137,2262,144,223],backgroundColor:['#B4B2A9','#B4B2A9','#B4B2A9','#1D9E75','#1D9E75'],borderRadius:3}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:tickColor,font:{size:10}},grid:{display:false}},y:{ticks:{color:tickColor,font:{size:10}},grid:{color:gridColor}}}}
+});
+new Chart(document.getElementById('sdLangChart'), {
+  type:'bar', data:{labels:['Chinese','Malay','Tamil'],datasets:[{data:[11.4,7.4,28.2],backgroundColor:['#7F77DD','#378ADD','#D85A30'],borderRadius:3}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw}%`}}},scales:{x:{ticks:{color:tickColor,font:{size:11}},grid:{display:false}},y:{ticks:{color:tickColor,font:{size:11},callback:v=>v+'%'},grid:{color:gridColor},max:35}}}
+});
+const sdSchools=['Plmgss','Ctss','Bartleyss','Yuhuass','Stmargaretss','Blss','Cvss','Crest_ss','Yckss','Northvistass','Meridianss','Qtss','Northbrooks','Sacss','Spectrasec'];
+const sdPct=[38.6,26.7,20.8,17.4,16.1,13.0,12.8,12.4,9.8,7.7,6.4,5.0,4.8,4.8,2.4];
+new Chart(document.getElementById('sdSchoolChart'), {
+  type:'bar', data:{labels:sdSchools,datasets:[{data:sdPct,backgroundColor:sdPct.map(v=>v>=20?'#1D9E75':v>=10?'#378ADD':'#B4B2A9'),borderRadius:3}]},
+  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw}%`}}},scales:{x:{ticks:{color:tickColor,font:{size:10},callback:v=>v+'%'},grid:{color:gridColor},max:45},y:{ticks:{color:tickColor,font:{size:10}},grid:{display:false}}}}
+});
+const schoolsRet=['Punggolss','Plmgss','Northbrooks','Yckss','Qtss','Sacss','Blss','Cvss','Yuhuass','Ctss','Northvistass','Crest_ss','Stmargaretss','Spectrasec','Meridianss','Bartleyss'];
+const retPct=[87.5,86.7,85.7,70.7,70.0,61.9,58.7,58.1,43.5,43.3,42.0,37.1,31.5,25.3,19.1,16.7];
+new Chart(document.getElementById('retentionChart'), {
+  type:'bar', data:{labels:schoolsRet,datasets:[{data:retPct,backgroundColor:retPct.map(v=>v>=60?'#1D9E75':v>=40?'#378ADD':'#D85A30'),borderRadius:3}]},
+  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw}%`}}},scales:{x:{ticks:{color:tickColor,font:{size:10},callback:v=>v+'%'},grid:{color:gridColor},max:100},y:{ticks:{color:tickColor,font:{size:10}},grid:{display:false}}}}
+});
+new Chart(document.getElementById('weekChart'), {
+  type:'bar', data:{labels:['2 Feb','9 Feb','16 Feb','23 Feb','2 Mar','9 Mar','16 Mar','23 Mar','30 Mar'],datasets:[{label:'All',data:[58,551,49,1011,1338,1394,50,400,151],backgroundColor:'#B5D4F4',yAxisID:'y'},{label:'After-school',data:[3,21,5,92,94,113,22,71,12],backgroundColor:'#D85A30',yAxisID:'y'}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:tickColor,font:{size:11},autoSkip:false,maxRotation:30},grid:{color:gridColor}},y:{ticks:{color:tickColor,font:{size:11}},grid:{color:gridColor}}}}
+});
+new Chart(document.getElementById('turnChart'), {
+  type:'bar', data:{labels:['1 turn (bounce)','2–5 turns','6–10 turns','11–20 turns','21+ turns'],datasets:[{data:[1282,789,575,766,1590],backgroundColor:['#D85A30','#EF9F27','#888780','#378ADD','#1D9E75'],borderRadius:3}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:tickColor,font:{size:10}},grid:{display:false}},y:{ticks:{color:tickColor,font:{size:10}},grid:{color:gridColor}}}}
+});
+
+
+
+
+</script>
+
+</div>
+</body>
+</html>
